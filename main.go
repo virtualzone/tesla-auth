@@ -40,10 +40,6 @@ func sendNotFound(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNotFound)
 }
 
-func sendInternalServerError(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusInternalServerError)
-}
-
 func servePublicKey(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, GetConfig().PublicKeyPath)
 }
@@ -86,31 +82,6 @@ func authCallback(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(tokens.AccessToken))
-
-	/*
-		parsedToken, _ := jwt.Parse(tokens.AccessToken, nil)
-		if parsedToken == nil || parsedToken.Claims == nil {
-			sendInternalServerError(w)
-			return
-		}
-		sub, _ := parsedToken.Claims.GetSubject()
-
-		user := GetDB().GetUser(userID)
-		if user == nil {
-			SendNotFound(w)
-			return
-		}
-
-		user.TeslaUserID = sub
-		GetDB().CreateUpdateUser(user)
-
-		loginResponse := LoginResponse{
-			AccessToken:  tokens.AccessToken,
-			RefreshToken: tokens.RefreshToken,
-			User:         *user,
-		}
-		SendJSON(w, loginResponse)
-	*/
 }
 
 func getAuthTokens(code string, redirectURI string) (*TeslaAPITokenReponse, error) {
@@ -127,7 +98,6 @@ func getAuthTokens(code string, redirectURI string) (*TeslaAPITokenReponse, erro
 
 	resp, err := retryHTTPRequest(r)
 	if err != nil {
-		// TODO
 		log.Println(err)
 		return nil, err
 	}
@@ -159,7 +129,12 @@ func createAuthState() string {
 }
 
 func cleanupExpiredAuthCodes() {
-	// TODO
+	now := time.Now()
+	for k, v := range authStateCache {
+		if v.After(now) {
+			delete(authStateCache, k)
+		}
+	}
 }
 
 func unmarshalBody(r io.ReadCloser, o interface{}) error {

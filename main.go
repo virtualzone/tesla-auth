@@ -125,13 +125,14 @@ func getAuthRedirectURI() string {
 func createAuthState() string {
 	res := uuid.NewString()
 	authStateCache[res] = time.Now().Add(5 * time.Minute)
+	log.Println(authStateCache)
 	return res
 }
 
 func cleanupExpiredAuthCodes() {
 	now := time.Now()
 	for k, v := range authStateCache {
-		if v.After(now) {
+		if now.After(v) {
 			delete(authStateCache, k)
 		}
 	}

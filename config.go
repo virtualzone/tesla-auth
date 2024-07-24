@@ -28,7 +28,7 @@ func GetConfig() *Config {
 }
 
 func (c *Config) ReadConfig() {
-	c.Hostname = c.getEnv("HOSTNAME", "localhost:8080")
+	c.Hostname = c.getEnv("PUBLIC_HOST", "localhost:8080")
 	port, err := strconv.Atoi(c.getEnv("PORT", "8080"))
 	if err != nil {
 		log.Panicln("PORT must be numeric")
